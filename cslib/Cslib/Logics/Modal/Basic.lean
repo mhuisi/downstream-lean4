@@ -80,12 +80,12 @@ lemma Proposition.not_def (φ : Proposition τ Atom) : φ.not = ¬φ := rfl
 lemma Proposition.or_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
 
 @[scoped grind =]
-lemma Proposition.triangle_def {τ : PFunctor} (op : τ.A)
-    (φs : τ.B op → Proposition τ Atom) : Proposition.triangle op φs = (Δ[op]φs) := rfl
+lemma Proposition.triangle_def {τ : PFunctor} (op : τ.A) (φs : τ.B op → Proposition τ Atom)
+    : Proposition.triangle op φs = (Δ[op]φs) :=
+  rfl
 
 /-- Truth. -/
-@[match_pattern]
-def Proposition.true : Proposition τ Atom := ¬⊥
+@[match_pattern] def Proposition.true : Proposition τ Atom := ¬⊥
 
 instance {τ : PFunctor} {Atom : Type*} : Top (Proposition τ Atom) := ⟨.true⟩
 
@@ -93,8 +93,7 @@ instance {τ : PFunctor} {Atom : Type*} : Top (Proposition τ Atom) := ⟨.true�
 lemma Proposition.true_def : Proposition.true (τ := τ) (Atom := Atom) = ⊤ := rfl
 
 /-- Conjunction. -/
-@[match_pattern]
-def Proposition.and (φ₁ φ₂ : Proposition τ Atom) := ¬(¬φ₁ ∨ ¬φ₂)
+@[match_pattern] def Proposition.and (φ₁ φ₂ : Proposition τ Atom) := ¬(¬φ₁ ∨ ¬φ₂)
 
 instance {τ : PFunctor} {Atom : Type*} : HasAnd (Proposition τ Atom) := ⟨.and⟩
 
@@ -102,8 +101,7 @@ instance {τ : PFunctor} {Atom : Type*} : HasAnd (Proposition τ Atom) := ⟨.an
 lemma Proposition.and_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
 
 /-- Implication. -/
-@[match_pattern]
-def Proposition.imp (φ₁ φ₂ : Proposition τ Atom) := ¬φ₁ ∨ φ₂
+@[match_pattern] def Proposition.imp (φ₁ φ₂ : Proposition τ Atom) := ¬φ₁ ∨ φ₂
 
 instance {τ : PFunctor} {Atom : Type*} : HasImp (Proposition τ Atom) := ⟨.imp⟩
 
@@ -111,8 +109,7 @@ instance {τ : PFunctor} {Atom : Type*} : HasImp (Proposition τ Atom) := ⟨.im
 lemma Proposition.imp_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.imp φ₂ = (φ₁ → φ₂) := rfl
 
 /-- Bi-implication. -/
-@[match_pattern]
-def Proposition.iff (φ₁ φ₂ : Proposition τ Atom) := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
+@[match_pattern] def Proposition.iff (φ₁ φ₂ : Proposition τ Atom) := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
 
 instance {τ : PFunctor} {Atom : Type*} : HasIff (Proposition τ Atom) := ⟨.iff⟩
 
@@ -120,13 +117,14 @@ instance {τ : PFunctor} {Atom : Type*} : HasIff (Proposition τ Atom) := ⟨.if
 lemma Proposition.iff_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.iff φ₂ = (φ₁ ↔ φ₂) := rfl
 
 /-- Point-wise negation of a proposition map. -/
-def PropositionMap.not (φs : PropositionMap τ op Atom) := fun i => ¬φs i
+def PropositionMap.not (φs : PropositionMap τ op Atom) := fun i => ¬ φs i
 
 instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasNot (PropositionMap τ op Atom) := ⟨.not⟩
 
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.not_apply {φs : PropositionMap τ op Atom} (i : τ.B op) :
-    (¬φs) i = ¬(φs i) := by simp [HasNot.not, PropositionMap.not]
+theorem PropositionMap.not_apply {φs : PropositionMap τ op Atom} (i : τ.B op)
+    : (¬φs) i = ¬(φs i) := by
+  simp [HasNot.not, PropositionMap.not]
 
 /-- Point-wise conjunction of proposition maps. -/
 def PropositionMap.and (φs₁ φs₂ : PropositionMap τ op Atom) := fun i => φs₁ i ∧ φs₂ i
@@ -134,8 +132,9 @@ def PropositionMap.and (φs₁ φs₂ : PropositionMap τ op Atom) := fun i => �
 instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasAnd (PropositionMap τ op Atom) := ⟨.and⟩
 
 @[scoped grind =, modal =]
-theorem PropositionMap.and_apply (φs₁ φs₂ : PropositionMap τ op Atom) (i : τ.B op) :
-    (φs₁ ∧ φs₂) i = (φs₁ i ∧ φs₂ i) := rfl
+theorem PropositionMap.and_apply (φs₁ φs₂ : PropositionMap τ op Atom) (i : τ.B op)
+    : (φs₁ ∧ φs₂) i = (φs₁ i ∧ φs₂ i) :=
+  rfl
 
 /-- Point-wise disjunction of proposition maps. -/
 def PropositionMap.or (φs₁ φs₂ : PropositionMap τ op Atom) := fun i => φs₁ i ∨ φs₂ i
@@ -153,60 +152,71 @@ def PropositionMap.iff (φs₁ φs₂ : PropositionMap τ op Atom) := fun i => �
 instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasIff (PropositionMap τ op Atom) := ⟨.iff⟩
 
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.or_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
-    (φs ∨ ψs) i = (φs i ∨ ψs i) := rfl
+theorem PropositionMap.or_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op)
+    : (φs ∨ ψs) i = (φs i ∨ ψs i) :=
+  rfl
 
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.imp_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
-    (φs → ψs) i = (φs i → ψs i) := rfl
+theorem PropositionMap.imp_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op)
+    : (φs → ψs) i = (φs i → ψs i) :=
+  rfl
 
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.iff_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
-    (φs ↔ ψs) i = (φs i ↔ ψs i) := rfl
+theorem PropositionMap.iff_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op)
+    : (φs ↔ ψs) i = (φs i ↔ ψs i) :=
+  rfl
 
 /-- Generalised necessity, or nabla (∇), dual of triangle. -/
 @[match_pattern]
-def Proposition.nabla {τ : PFunctor} (op : τ.A) (φs : τ.B op → Proposition τ Atom) :=
-  ¬Δ[op]¬φs
+def Proposition.nabla {τ : PFunctor} (op : τ.A) (φs : τ.B op → Proposition τ Atom) := ¬ Δ[op]¬φs
 
 instance {τ : PFunctor} {Atom : Type*} : HasNabla (Proposition τ Atom) τ := ⟨.nabla⟩
 
 @[scoped grind =]
-lemma Proposition.nabla_def {τ : PFunctor} (op : τ.A)
-    (φs : τ.B op → Proposition τ Atom) : Proposition.nabla op φs = (∇[op]φs) := rfl
+lemma Proposition.nabla_def {τ : PFunctor} (op : τ.A) (φs : τ.B op → Proposition τ Atom)
+    : Proposition.nabla op φs = (∇[op]φs) :=
+  rfl
 
-/-- The constant proposition map for the operator `op`, used for applying a modality uniformly. This
-supplies the same proposition `φ` to every argument position of `op`. -/
-abbrev PropositionMap.const {τ : PFunctor} (op : τ.A) (φ : Proposition τ Atom) :
-    PropositionMap τ op Atom := PFunctor.const op φ
+/--
+The constant proposition map for the operator `op`, used for applying a modality uniformly. This
+supplies the same proposition `φ` to every argument position of `op`.
+-/
+abbrev PropositionMap.const {τ : PFunctor} (op : τ.A) (φ : Proposition τ Atom)
+    : PropositionMap τ op Atom :=
+  PFunctor.const op φ
 
 /-- Negation commutes with constant proposition maps. -/
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.const_not {τ : PFunctor} (op : τ.A) (φ : Proposition τ Atom) :
-    PropositionMap.const op (¬φ) = ¬PropositionMap.const op φ := by grind only [modal]
+theorem PropositionMap.const_not {τ : PFunctor} (op : τ.A) (φ : Proposition τ Atom)
+    : PropositionMap.const op (¬φ) = ¬ PropositionMap.const op φ := by
+  grind only [modal]
 
 /-- Conjunction commutes with constant proposition maps. -/
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.const_and {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom) :
-    PropositionMap.const op (φ ∧ ψ) = (PropositionMap.const op φ ∧ PropositionMap.const op ψ) := by
+theorem PropositionMap.const_and {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom)
+    : PropositionMap.const op (φ ∧ ψ)
+      = (PropositionMap.const op φ ∧ PropositionMap.const op ψ) := by
   grind only [modal]
 
 /-- Disjunction commutes with constant proposition maps. -/
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.const_or {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom) :
-    PropositionMap.const op (φ ∨ ψ) = (PropositionMap.const op φ ∨ PropositionMap.const op ψ) := by
+theorem PropositionMap.const_or {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom)
+    : PropositionMap.const op (φ ∨ ψ)
+      = (PropositionMap.const op φ ∨ PropositionMap.const op ψ) := by
   grind only [modal]
 
 /-- Implication commutes with constant proposition maps. -/
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.const_imp {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom) :
-    PropositionMap.const op (φ → ψ) = (PropositionMap.const op φ → PropositionMap.const op ψ) := by
+theorem PropositionMap.const_imp {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom)
+    : PropositionMap.const op (φ → ψ)
+      = (PropositionMap.const op φ → PropositionMap.const op ψ) := by
   grind only [modal]
 
 /-- Bi-implication commutes with constant proposition maps. -/
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.const_iff {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom) :
-    PropositionMap.const op (φ ↔ ψ) = (PropositionMap.const op φ ↔ PropositionMap.const op ψ) := by
+theorem PropositionMap.const_iff {τ : PFunctor} (op : τ.A) (φ ψ : Proposition τ Atom)
+    : PropositionMap.const op (φ ↔ ψ)
+      = (PropositionMap.const op φ ↔ PropositionMap.const op ψ) := by
   grind only [modal]
 
 end Cslib.Logic.Modal

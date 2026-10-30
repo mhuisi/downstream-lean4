@@ -73,8 +73,9 @@ variable {Atom : Type u} [DecidableEq Atom]
 abbrev Ctx (Atom) := Finset (Proposition Atom)
 
 /-- Map a context along a substitution. -/
-def Ctx.subst {Atom Atom' : Type u} [DecidableEq Atom'] (f : Atom → Proposition Atom') :
-    Ctx Atom → Ctx Atom' := Finset.image (· >>= f)
+def Ctx.subst {Atom Atom' : Type u} [DecidableEq Atom'] (f : Atom → Proposition Atom')
+    : Ctx Atom → Ctx Atom' :=
+  Finset.image (· >>= f)
 
 /-- Sequents \{A₁, ..., Aₙ\} ⊢ B. -/
 abbrev Sequent {Atom} := Ctx Atom × Proposition Atom
@@ -82,16 +83,18 @@ abbrev Sequent {Atom} := Ctx Atom × Proposition Atom
 @[inherit_doc Sequent]
 scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
-/-- A `T`-derivation of \{A₁, ..., Aₙ\} ⊢ B demonstrates B using (undischarged) assumptions
-among Aᵢ, possibly appealing to axioms from `T`. -/
+/--
+A `T`-derivation of \{A₁, ..., Aₙ\} ⊢ B demonstrates B using (undischarged) assumptions
+among Aᵢ, possibly appealing to axioms from `T`.
+-/
 inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A
   /-- Assumption -/
   | ass {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ Γ) : Derivation Γ A
   /-- Conjunction introduction -/
-  | andI {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation Γ A → Derivation Γ B → Derivation Γ (A ∧ B)
+  | andI {Γ : Ctx Atom} {A B : Proposition Atom}
+    : Derivation Γ A → Derivation Γ B → Derivation Γ (A ∧ B)
   /-- Conjunction elimination left -/
   | andE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
   /-- Conjunction elimination right -/
@@ -101,14 +104,13 @@ inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom �
   /-- Disjunction introduction right -/
   | orI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
   /-- Disjunction elimination -/
-  | orE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
-      Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
+  | orE {Γ : Ctx Atom} {A B C : Proposition Atom}
+    : Derivation Γ (A ∨ B) → Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
   /-- Implication introduction -/
-  | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
-      Derivation (insert A Γ) B → Derivation Γ (A → B)
+  | implI {A B : Proposition Atom} (Γ : Ctx Atom) : Derivation (insert A Γ) B → Derivation Γ (A → B)
   /-- Implication elimination -/
-  | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
+  | implE {Γ : Ctx Atom} {A B : Proposition Atom}
+    : Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
 
 /-- Inference system for derivations under the theory `T`. -/
 instance (T : Theory Atom) : InferenceSystem T (Sequent (Atom := Atom)) where
@@ -122,12 +124,12 @@ variable {T : Theory Atom}
 
 theorem Theory.Derivation.emptySequent_eq {A : Proposition Atom} : T⇓A = T⇓(∅ ⊢ A) := rfl
 
-theorem DerivableIn.iff_derivableIn_empty {A : Proposition Atom} :
-    DerivableIn T A ↔ DerivableIn T (∅ ⊢ A) := by rfl
+theorem DerivableIn.iff_derivableIn_empty {A : Proposition Atom}
+    : DerivableIn T A ↔ DerivableIn T (∅ ⊢ A) := by
+  rfl
 
 /-- An equivalence between A and B is a derivation of B from A and vice-versa. -/
-def Theory.equiv (A B : Proposition Atom) :=
-  T⇓({A} ⊢ B) × T⇓({B} ⊢ A)
+def Theory.equiv (A B : Proposition Atom) := T⇓({A} ⊢ B) × T⇓({B} ⊢ A)
 
 /-- Forward direction of an equivalence. -/
 def Theory.equiv.mp {A B : Proposition Atom} (e : T.equiv A B) : T⇓({A} ⊢ B) := e.1
@@ -138,8 +140,7 @@ def Theory.equiv.mpr {A B : Proposition Atom} (e : T.equiv A B) : T⇓({B} ⊢ A
 /-- `A` and `B` are T-equivalent if `T.equiv A B` is nonempty. -/
 def Theory.Equiv (A B : Proposition Atom) := Nonempty (T.equiv A B)
 
-@[inherit_doc]
-scoped notation A " ≡[" T' "] " B:29 => Theory.Equiv (T := T') A B
+@[inherit_doc] scoped notation A " ≡[" T' "] " B:29 => Theory.Equiv (T := T') A B
 
 lemma Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : DerivableIn T ({A} ⊢ B) :=
   ⟨h.some.mp⟩
@@ -147,8 +148,8 @@ lemma Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : DerivableIn T 
 lemma Theory.Equiv.mpr {A B : Proposition Atom} (h : A ≡[T] B) : DerivableIn T ({B} ⊢ A) :=
   ⟨h.some.mpr⟩
 
-theorem Theory.equiv_iff {A B : Proposition Atom} :
-  A ≡[T] B ↔ DerivableIn T ({A} ⊢ B) ∧ DerivableIn T ({B} ⊢ A) := by
+theorem Theory.equiv_iff {A B : Proposition Atom}
+    : A ≡[T] B ↔ DerivableIn T ({A} ⊢ B) ∧ DerivableIn T ({B} ⊢ A) := by
   constructor
   · intro h
     exact ⟨h.mp, h.mpr⟩
@@ -158,16 +159,16 @@ theorem Theory.equiv_iff {A B : Proposition Atom} :
 /-- Minimally equivalent propositions. -/
 abbrev Equiv : Proposition Atom → Proposition Atom → Prop := (MPL Atom).Equiv
 
-@[inherit_doc]
-scoped infix:29 " ≡ " => Equiv
+@[inherit_doc] scoped infix:29 " ≡ " => Equiv
 
 open Derivation DerivableIn
 
 /-! ### Operations on derivations -/
 
 /-- Weakening is a derived rule. -/
-def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : T.Derivation Γ A → T'.Derivation Δ A
+def Theory.Derivation.weak
+    {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom} (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ)
+    : T.Derivation Γ A → T'.Derivation Δ A
   | ax hA => ax <| hTheory hA
   | ass hA => ass <| hCtx hA
   | andI D D' => andI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
@@ -176,57 +177,64 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
   | orI₁ D => orI₁ <| D.weak hTheory hCtx
   | orI₂ D => orI₂ <| D.weak hTheory hCtx
   | orE D D' D'' =>
-    orE (D.weak hTheory hCtx)
-      (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
+    orE (D.weak hTheory hCtx) (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
       (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
   | @implI _ _ _ A B Γ D => implI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
   | implE D D' => implE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
-def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T') : T⇓(Γ ⊢ A) → T'⇓(Γ ⊢ A):=
+def Theory.Derivation.weakTheory
+    {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom} (hTheory : T ⊆ T')
+    : T⇓(Γ ⊢ A) → T'⇓(Γ ⊢ A) :=
   Derivation.weak hTheory Finset.Subset.rfl
 
 /-- Weakening the context only. -/
-def Theory.Derivation.weakCtx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hCtx : Γ ⊆ Δ) : T⇓(Γ ⊢ A) → T⇓(Δ ⊢ A) :=
+def Theory.Derivation.weakCtx
+    {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom} (hCtx : Γ ⊆ Δ)
+    : T⇓(Γ ⊢ A) → T⇓(Δ ⊢ A) :=
   Derivation.weak Set.Subset.rfl hCtx
 
 /-- Proof irrelevant weakening. -/
-theorem DerivableIn.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Δ ⊢ A)
+theorem DerivableIn.weak
+    {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom} (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ)
+    : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Δ ⊢ A)
   | ⟨D⟩ => ⟨D.weak hTheory hCtx⟩
 
 /-- Proof irrelevant weakening of the theory. -/
-theorem DerivableIn.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T') : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Γ ⊢ A)
+theorem DerivableIn.weakTheory
+    {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom} (hTheory : T ⊆ T')
+    : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Γ ⊢ A)
   | ⟨D⟩ => ⟨D.weakTheory hTheory⟩
 
 /-- Proof irrelevant weakening of the context. -/
-theorem DerivableIn.weakCtx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hCtx : Γ ⊆ Δ) : DerivableIn T (Γ ⊢ A) → DerivableIn T (Δ ⊢ A)
+theorem DerivableIn.weakCtx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom} (hCtx : Γ ⊆ Δ)
+    : DerivableIn T (Γ ⊢ A) → DerivableIn T (Δ ⊢ A)
   | ⟨D⟩ => ⟨D.weakCtx hCtx⟩
 
 /--
 Implement the cut rule, removing a hypothesis `A` from `E` using a derivation `D`. This is *not*
 substitution, which would replace appeals to `A` in `E` by the whole derivation `D`.
 -/
-def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
-    (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) := by
+def Theory.Derivation.cut
+    {Γ Δ : Ctx Atom} {A B : Proposition Atom} (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B))
+    : T⇓((Γ ∪ Δ) ⊢ B) := by
   refine implE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
   have : insert A Δ ⊆ insert A (Γ ∪ Δ) := by grind
   exact implI (Γ ∪ Δ) <| E.weakCtx this
 
 /-- Proof irrelevant cut rule. -/
-theorem DerivableIn.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom} :
-    DerivableIn T (Γ ⊢ A) → DerivableIn T ((insert A Δ) ⊢ B) → DerivableIn T ((Γ ∪ Δ) ⊢ B)
+theorem DerivableIn.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
+    : DerivableIn T (Γ ⊢ A) → DerivableIn T ((insert A Δ) ⊢ B) → DerivableIn T ((Γ ∪ Δ) ⊢ B)
   | ⟨D⟩, ⟨E⟩ => ⟨D.cut E⟩
 
-/-- Remove unnecessary hypotheses. This can't be computable because it requires picking an order
-on the finset `Δ`. -/
-theorem DerivableIn.cut_away {Γ Γ' : Ctx Atom} {B : Proposition Atom}
-    (hΔ : ∀ A ∈ Γ', DerivableIn T (Γ ⊢ A)) (hDer : DerivableIn T ((Γ ∪ Γ') ⊢ B)) :
-    DerivableIn T (Γ ⊢ B) := by
+/--
+Remove unnecessary hypotheses. This can't be computable because it requires picking an order
+on the finset `Δ`.
+-/
+theorem DerivableIn.cut_away
+    {Γ Γ' : Ctx Atom} {B : Proposition Atom}
+    (hΔ : ∀ A ∈ Γ', DerivableIn T (Γ ⊢ A)) (hDer : DerivableIn T ((Γ ∪ Γ') ⊢ B))
+    : DerivableIn T (Γ ⊢ B) := by
   induction Γ' using Finset.induction with
   | empty => exact DerivableIn.weakCtx (by grind) hDer
   | insert A Δ hA ih =>
@@ -237,23 +245,27 @@ theorem DerivableIn.cut_away {Γ Γ' : Ctx Atom} {B : Proposition Atom}
       · exact hΔ A <| Finset.mem_insert_self A Δ
       · rwa [← Finset.union_insert A Γ Δ]
 
-/-- Substitution of a family of derivations `D` for hypotheses in the context `Γ` of `E`. TODO:
-this implementation is not capture avoiding. -/
-def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
-    (Ds : ∀ A ∈ Γ', T⇓(Δ ⊢ A)) :
-      T.Derivation Γ B → T.Derivation (Γ \ Γ' ∪ Δ) B
+/--
+Substitution of a family of derivations `D` for hypotheses in the context `Γ` of `E`. TODO:
+this implementation is not capture avoiding.
+-/
+def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom} (Ds : ∀ A ∈ Γ', T⇓(Δ ⊢ A))
+    : T.Derivation Γ B → T.Derivation (Γ \ Γ' ∪ Δ) B
   | ax hB => ax hB
   | @ass _ _ _ _ B hB => by
     by_cases B ∈ Γ'
-    case pos h =>
-      exact (Ds B h).weakCtx <| by grind
-    case neg h =>
-      exact ass <| by grind
-  | andI E E' => andI (E.subs Ds) (E'.subs Ds)
-  | andE₁ E => andE₁ <| E.subs Ds
-  | andE₂ E => andE₂ <| E.subs Ds
-  | orI₁ E => orI₁ <| E.subs Ds
-  | orI₂ E => orI₂ <| E.subs Ds
+    case pos h => exact (Ds B h).weakCtx <| by grind
+    case neg h => exact ass <| by grind
+  | andI E E' =>
+    andI (E.subs Ds) (E'.subs Ds)
+  | andE₁ E =>
+    andE₁ <| E.subs Ds
+  | andE₂ E =>
+    andE₂ <| E.subs Ds
+  | orI₁ E =>
+    orI₁ <| E.subs Ds
+  | orI₂ E =>
+    orI₂ <| E.subs Ds
   | @orE _ _ _ _ C C' _ E E' E'' .. => by
     apply orE (E.subs Ds)
     · rw [show insert C (Γ \ Γ' ∪ Δ) = (insert C Γ \ Γ') ∪ insert C Δ by grind]
@@ -267,9 +279,12 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
   | implE E E' => implE (E.subs Ds) (E'.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
-def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
-    {T : Theory Atom} (f : Atom → Proposition Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
-    T.Derivation Γ B → (T.subst f).Derivation (Γ.subst f) (B >>= f)
+def Theory.Derivation.substAtom
+    {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
+    {T : Theory Atom}
+    (f : Atom → Proposition Atom')
+    {Γ : Ctx Atom} {B : Proposition Atom}
+    : T.Derivation Γ B → (T.subst f).Derivation (Γ.subst f) (B >>= f)
   | ax h => ax <| Set.mem_image_of_mem (· >>= f) h
   | ass h => ass <| Finset.mem_image_of_mem (· >>= f) h
   | andI D E => andI (D.substAtom f) (E.substAtom f)
@@ -277,66 +292,68 @@ def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decida
   | andE₂ D => andE₂ (D.substAtom f)
   | orI₁ D => orI₁ (D.substAtom f)
   | orI₂ D => orI₂ (D.substAtom f)
-  | orE D E E' => orE (D.substAtom f)
-    ((Finset.image_insert (· >>= f) _ _) ▸ E.substAtom f)
-    ((Finset.image_insert (· >>= f) _ _) ▸ E'.substAtom f)
+  | orE D E E' =>
+    orE (D.substAtom f) ((Finset.image_insert (· >>= f) _ _) ▸ E.substAtom f)
+      ((Finset.image_insert (· >>= f) _ _) ▸ E'.substAtom f)
   | implI _ D => implI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
   | implE D E => implE (D.substAtom f) (E.substAtom f)
 
-theorem DerivableIn.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
+theorem DerivableIn.substAtom
+    {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom}
-    (f : Atom → Proposition Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
-    DerivableIn T (Γ ⊢ B) → DerivableIn (T.subst f) ((Γ.subst f) ⊢ (B >>= f))
+    (f : Atom → Proposition Atom')
+    {Γ : Ctx Atom} {B : Proposition Atom}
+    : DerivableIn T (Γ ⊢ B) → DerivableIn (T.subst f) ((Γ.subst f) ⊢ (B >>= f))
   | ⟨D⟩ => ⟨D.substAtom f⟩
 
 /-! ### Properties of equivalence -/
 
 /-- A derivation of the canonical tautology. -/
-def Theory.derivationTop [Inhabited Atom] : T⇓(⊤ : Proposition Atom) :=
-  implI ∅ <| ass <| by grind
+def Theory.derivationTop [Inhabited Atom] : T⇓(⊤ : Proposition Atom) := implI ∅ <| ass <| by grind
 
 theorem derivableIn_top [Inhabited Atom] : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
 
-theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom) :
-    DerivableIn T A ↔ A ≡[T] ⊤ := by
+theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom)
+    : DerivableIn T A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
   · refine ⟨derivationTop.weakCtx <| by grind, ?_⟩
     let D := Classical.choice h
     exact D.weakCtx <| by grind
   · have := DerivableIn.cut (derivableIn_top (T := T)) (B := A) (Δ := ∅)
-    rw [←show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
+    rw [← show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
     exact this h.mpr
 
 namespace Theory
 
 /-- Change the conclusion along an equivalence. -/
-def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B)
-    (D : T⇓(Γ ⊢ A)) : T⇓(Γ ⊢ B) :=
+def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B) (D : T⇓(Γ ⊢ A))
+    : T⇓(Γ ⊢ B) :=
   Γ.union_empty ▸ Derivation.cut (Δ := ∅) D e.1
 
 /-- Replace a hypothesis along an equivalence. -/
-def mapEquivHypothesis (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B)
-    (C : Proposition Atom) (D : T⇓(insert A Γ ⊢ C)) : T⇓(insert B Γ ⊢ C) := by
+def mapEquivHypothesis
+    (Γ : Ctx Atom)
+    {A B : Proposition Atom} (e : T.equiv A B)
+    (C : Proposition Atom) (D : T⇓(insert A Γ ⊢ C))
+    : T⇓(insert B Γ ⊢ C) := by
   have : insert B Γ = {B} ∪ Γ := rfl
   exact this ▸ Derivation.cut e.2 D
 
 /-- An equivalence of a proposition with itself. -/
 def equiv.refl (A : Proposition Atom) : T.equiv A A :=
-  let D : T⇓({A} ⊢ A) := ass <| Finset.mem_singleton_self A;
+  let D : T⇓({A} ⊢ A) := ass <| Finset.mem_singleton_self A
   ⟨D, D⟩
 
 /-- Reverse an equivalence. -/
-def equiv.symm {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A :=
-  ⟨e.mpr, e.mp⟩
+def equiv.symm {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A := ⟨e.mpr, e.mp⟩
 
 /-- Compose two equivalences. -/
-def equiv.trans {A B C : Proposition Atom} (eAB : T.equiv A B)
-    (eBC : T.equiv B C) : T.equiv A C :=
+def equiv.trans {A B C : Proposition Atom} (eAB : T.equiv A B) (eBC : T.equiv B C) : T.equiv A C :=
   ⟨mapEquivConclusion _ eBC eAB.mp, mapEquivConclusion _ eAB.symm eBC.mpr⟩
 
 /-- `A` and `B` are equivalent (in `T`) iff they are provable from the same contexts. -/
-theorem equiv_iff_equiv_derivableIn {A B : Proposition Atom} :
-    A ≡[T] B ↔ ∀ Γ : Ctx Atom, DerivableIn T (Γ ⊢ A) ↔ DerivableIn T (Γ ⊢ B) := by
+theorem equiv_iff_equiv_derivableIn {A B : Proposition Atom}
+    : A ≡[T] B ↔ ∀ Γ : Ctx Atom, DerivableIn T (Γ ⊢ A) ↔ DerivableIn T (Γ ⊢ B) := by
   constructor
   · intro ⟨e⟩ Γ
     exact ⟨fun D => mapEquivConclusion Γ e D.some, fun D => mapEquivConclusion Γ e.symm D.some⟩
@@ -347,10 +364,10 @@ theorem equiv_iff_equiv_derivableIn {A B : Proposition Atom} :
     · exact (h {B}).mpr ⟨ass <| by grind⟩
 
 /-- `A` and `B` are equivalent (in `T`) iff they have the same strength as hypotheses. -/
-theorem equiv_iff_equiv_derivableIn_hypothesis {A B : Proposition Atom} :
-    A ≡[T] B ↔
-      ∀ (Γ : Ctx Atom) (C : Proposition Atom),
-      DerivableIn T ((insert A Γ) ⊢ C) ↔ DerivableIn T ((insert B Γ) ⊢ C) := by
+theorem equiv_iff_equiv_derivableIn_hypothesis {A B : Proposition Atom}
+    : A ≡[T] B
+      ↔ ∀ (Γ : Ctx Atom) (C : Proposition Atom),
+        DerivableIn T ((insert A Γ) ⊢ C) ↔ DerivableIn T ((insert B Γ) ⊢ C) := by
   constructor
   · intro ⟨e⟩ Γ C
     exact ⟨fun D => mapEquivHypothesis Γ e C D.some, fun E => mapEquivHypothesis Γ e.symm C E.some⟩
@@ -361,15 +378,13 @@ theorem equiv_iff_equiv_derivableIn_hypothesis {A B : Proposition Atom} :
     · exact (h ∅ A).mp ⟨ass <| by grind⟩
 
 @[refl]
-theorem Equiv.refl {T : Theory Atom} (A : Proposition Atom) : A ≡[T] A := by
-  exact ⟨equiv.refl A⟩
+theorem Equiv.refl {T : Theory Atom} (A : Proposition Atom) : A ≡[T] A := by exact ⟨equiv.refl A⟩
 
-theorem Equiv.symm {T : Theory Atom} {A B : Proposition Atom} :
-    (A ≡[T] B) → B ≡[T] A
+theorem Equiv.symm {T : Theory Atom} {A B : Proposition Atom} : (A ≡[T] B) → B ≡[T] A
   | ⟨e⟩ => ⟨e.symm⟩
 
-theorem Equiv.trans {T : Theory Atom} {A B C : Proposition Atom} :
-    (A ≡[T] B) → (B ≡[T] C) → A ≡[T] C
+theorem Equiv.trans {T : Theory Atom} {A B C : Proposition Atom}
+    : (A ≡[T] B) → (B ≡[T] C) → A ≡[T] C
   | ⟨e⟩, ⟨e'⟩ => ⟨e.trans e'⟩
 
 /-- Equivalence is indeed an equivalence relation. -/

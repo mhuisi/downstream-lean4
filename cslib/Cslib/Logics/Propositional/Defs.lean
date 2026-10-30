@@ -77,12 +77,14 @@ instance [Bot Atom] : HasNot (Proposition Atom) := ⟨.neg⟩
 
 omit [DecidableEq Atom] in
 @[grind =]
-lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬A := rfl
 
-/-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
-language. -/
-def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
-    Proposition Atom → Proposition Atom'
+/--
+Substitute each atom in a proposition for a proposition, possibly changing the atomic
+language.
+-/
+def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom')
+    : Proposition Atom → Proposition Atom'
   | atom x => f x
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
@@ -99,8 +101,9 @@ abbrev Theory (Atom) := Set (Proposition Atom)
 namespace Theory
 
 /-- Extend a substitution from `Proposition` to `Theory`. -/
-protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Proposition Atom') :
-    Theory Atom' := T.image (· >>= f)
+protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Proposition Atom')
+    : Theory Atom' :=
+  T.image (· >>= f)
 
 instance : Functor Theory where
   map f := Set.image (f <$> ·)
@@ -123,25 +126,29 @@ def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
 abbrev CPL (Atom : Type u) [Bot Atom] : Theory Atom := {¬¬A → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
+lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬ ¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
 
 open InferenceSystem
 
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
+/--
+An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
 generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
-implication connective. -/
+implication connective.
+-/
 @[scoped grind]
-class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
-    [InferenceSystem S (Proposition Atom)] where
+class IsIntuitionistic
+    (Atom : Type u) [Bot Atom] (S : Type*) [InferenceSystem S (Proposition Atom)] where
   /-- The principle of explosion (ex falso quolibet). -/
   efq (A : Proposition Atom) : S⇓(⊥ → A)
 
-/-- An inference system is classical if it validates double-negation elimination. TODO: this should
+/--
+An inference system is classical if it validates double-negation elimination. TODO: this should
 be generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
-implication connective. -/
+implication connective.
+-/
 @[scoped grind]
-class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
-    [InferenceSystem S (Proposition Atom)] where
+class IsClassical
+    (Atom : Type u) [Bot Atom] (S : Type*) [InferenceSystem S (Proposition Atom)] where
   /-- Double-negation elimination. -/
   dne (A : Proposition Atom) : S⇓(¬¬A → A)
 

@@ -23,8 +23,10 @@ class HasHContext (α β : Type*) where
 
 @[inherit_doc] notation:max c "<[" t "]" => HasHContext.fill c t
 
-/-- Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
-(`Context`). -/
+/--
+Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
+(`Context`).
+-/
 abbrev HasContext (α : Type*) := HasHContext α α
 
 @[inherit_doc HasHContext.Context]

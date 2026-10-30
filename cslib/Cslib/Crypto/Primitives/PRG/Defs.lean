@@ -32,8 +32,10 @@ namespace Cslib.Crypto.PRG
 open Cslib.Probability.PMF
 open scoped NNReal
 
-/-- A deterministic generator with seed space `Seed` and output space `Output`.
-Efficiency, expansion, and security are separate properties. -/
+/--
+A deterministic generator with seed space `Seed` and output space `Output`.
+Efficiency, expansion, and security are separate properties.
+-/
 @[ext]
 structure Generator (Seed Output : Type*) where
   /-- Generate an output from a seed. -/
@@ -50,8 +52,7 @@ instance : FunLike (Generator Seed Output) Seed Output where
   coe G := G.toFun
   coe_injective _ _ h := Generator.ext h
 
-@[simp]
-theorem coe_mk (f : Seed → Output) : ⇑(Generator.mk f) = f := rfl
+@[simp] theorem coe_mk (f : Seed → Output) : ⇑(Generator.mk f) = f := rfl
 
 /-- A generator expands when its output space is strictly larger than its seed space. -/
 def IsExpanding [Fintype Seed] [Fintype Output] (_G : Generator Seed Output) : Prop :=
@@ -64,24 +65,27 @@ noncomputable def outputDist (G : Generator Seed Output) : PMF Output :=
   (uniformOfFintype Seed).map G
 
 /-- Experiment 0 of Attack Game 3.1: give the adversary a generated output. -/
-noncomputable def realExperiment (G : Generator Seed Output)
-    (adversary : Adversary Output) : PMF Bool :=
+noncomputable def realExperiment (G : Generator Seed Output) (adversary : Adversary Output)
+    : PMF Bool :=
   G.outputDist.bind adversary
 
 /-- Experiment 1 of Attack Game 3.1: give the adversary a uniform output. -/
 noncomputable def idealExperiment (adversary : Adversary Output) : PMF Bool :=
   (uniformOfFintype Output).bind adversary
 
-/-- The absolute difference of the probabilities of outputting `true` in the two
-experiments, as in Attack Game 3.1 of [BonehShoup2023]. -/
+/--
+The absolute difference of the probabilities of outputting `true` in the two
+experiments, as in Attack Game 3.1 of [BonehShoup2023].
+-/
 noncomputable def advantage (G : Generator Seed Output) (adversary : Adversary Output) : ℝ :=
   |(G.realExperiment adversary true).toReal - (idealExperiment adversary true).toReal|
 
-/-- Concrete security against admissible adversaries. The predicate is supplied by the
+/--
+Concrete security against admissible adversaries. The predicate is supplied by the
 caller, for example to restrict tests to a chosen computational resource bound.
-Taking `Admissible := fun _ => True` allows arbitrary adversaries. -/
-def Secure (G : Generator Seed Output) (Admissible : Adversary Output → Prop)
-    (ε : ℝ≥0) : Prop :=
+Taking `Admissible := fun _ => True` allows arbitrary adversaries.
+-/
+def Secure (G : Generator Seed Output) (Admissible : Adversary Output → Prop) (ε : ℝ≥0) : Prop :=
   ∀ adversary, Admissible adversary → G.advantage adversary ≤ ε
 
 end Generator

@@ -8,7 +8,6 @@ module
 public import Cslib.Computability.Circuit.Counting
 public import Mathlib.Basic.Real.Basic
 public import Mathlib.SetTheory.Cardinal.Finite
-
 import Cslib.Foundations.Data.Nat.Asymptotics
 import Cslib.Foundations.Data.Nat.Factorial
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
@@ -43,10 +42,11 @@ open Filter
 universe v u
 variable {σ : Signature.{v}} {U : Type u}
 
-private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
-    (arity_le : ∀ op, σ.Arity op ≤ 2) :
-    ∃ C : ℝ, ∀ n s : ℕ, n + 1 ≤ s →
-      ((computableFunctions I n s).card : ℝ) ≤ Real.exp ((s : ℝ) * Real.log s + C * s) := by
+private theorem exists_card_le_exp
+    [Finite σ.Op] (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2)
+    : ∃ C : ℝ, ∀ n s : ℕ,
+      n + 1 ≤ s
+        → ((computableFunctions I n s).card : ℝ) ≤ Real.exp ((s : ℝ) * Real.log s + C * s) := by
   let q := Nat.card σ.Op + 1
   have hq : 1 ≤ q := Nat.succ_le_succ (Nat.zero_le _)
   refine ⟨Real.log (4 * (q : ℝ)) + 5, fun n s hn => ?_⟩
@@ -63,32 +63,31 @@ private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
       _ ≤ q * (n + s + 1) ^ 2 := by
         simpa only [one_mul] using Nat.mul_le_mul_right ((n + s + 1) ^ 2) hq
   have hlines (g : ℕ) (hg : g ≤ s) : Nat.card (Line σ n g) ≤ q * (n + s + 1) ^ 2 :=
-    (Line.card_le n g 2 arity_le).trans (Nat.mul_le_mul (Nat.le_succ _)
-      (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
-  have hcount : (a : ℝ) * s.factorial ≤
-      (2 * (s : ℝ)) ^ 2 * (4 * (q : ℝ) * (s : ℝ) ^ 2) ^ s := by
+    (Line.card_le n g 2 arity_le).trans
+      (Nat.mul_le_mul (Nat.le_succ _) (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
+  have hcount : (a : ℝ) * s.factorial ≤ (2 * (s : ℝ)) ^ 2 * (4 * (q : ℝ) * (s : ℝ) ^ 2) ^ s := by
     calc
-      (a : ℝ) * s.factorial ≤
-          ((s : ℝ) + 1) * ((q : ℝ) * ((n : ℝ) + s + 1) ^ 2) ^ s * (n + s) := by
+      (a : ℝ) * s.factorial ≤ ((s : ℝ) + 1) * ((q : ℝ) * ((n : ℝ) + s + 1) ^ 2) ^ s * (n + s) := by
         exact_mod_cast card_computableFunctions_mul_factorial_le I n s _ hB hlines
-      _ ≤ (2 * s) * ((q : ℝ) * (2 * (s : ℝ)) ^ 2) ^ s * (2 * s) := by
-        gcongr <;> linarith
+      _ ≤ (2 * s) * ((q : ℝ) * (2 * (s : ℝ)) ^ 2) ^ s * (2 * s) := by gcongr <;> linarith
       _ = _ := by rw [show (q : ℝ) * (2 * (s : ℝ)) ^ 2 = 4 * q * s ^ 2 by ring]; ring
-  have hlog : Real.log a + Real.log s.factorial ≤
-      2 * (Real.log 2 + Real.log s) + s * (Real.log (4 * (q : ℝ)) + 2 * Real.log s) := by
+  have hlog
+      : Real.log a + Real.log s.factorial
+        ≤ 2 * (Real.log 2 + Real.log s) + s * (Real.log (4 * (q : ℝ)) + 2 * Real.log s) := by
     simpa [Real.log_mul, Real.log_pow, ne_of_gt ha, Nat.factorial_ne_zero,
-      ne_of_gt (zero_lt_one.trans_le hs)] using
-      (Real.log_le_log (by positivity : 0 < (a : ℝ) * s.factorial) hcount)
+        ne_of_gt (zero_lt_one.trans_le hs)]
+      using (Real.log_le_log (by positivity : 0 < (a : ℝ) * s.factorial) hcount)
   apply (Real.log_le_iff_le_exp ha).mp
   have hfactorial := Nat.mul_log_sub_le_log_factorial s
   have hlogtwo := Real.log_le_sub_one_of_pos (by norm_num : (0 : ℝ) < 2)
   have hlogs := Real.log_le_self (by positivity : (0 : ℝ) ≤ s)
   nlinarith
 
-private theorem eventually_card_lt [Finite σ.Op] [Fintype U] [Nontrivial U]
-    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
-    ∀ᶠ n : ℕ in atTop, (computableFunctions I n (Fintype.card U ^ n / n)).card <
-      Fintype.card U ^ (Fintype.card U ^ n) := by
+private theorem eventually_card_lt
+    [Finite σ.Op] [Fintype U] [Nontrivial U]
+    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2)
+    : ∀ᶠ n : ℕ in atTop, (computableFunctions I n (Fintype.card U ^ n / n)).card <
+        Fintype.card U ^ (Fintype.card U ^ n) := by
   let q := Fintype.card U
   have hq : 1 < q := Fintype.one_lt_card
   have hqR : (1 : ℝ) < q := by exact_mod_cast hq
@@ -103,15 +102,14 @@ private theorem eventually_card_lt [Finite σ.Op] [Fintype U] [Nontrivial U]
   have hshift : s ≤ q ^ (n - t) := by
     apply Nat.div_le_of_le_mul
     calc
-      q ^ n = q ^ t * q ^ (n - t) := by rw [← pow_add, Nat.add_sub_of_le htn]
+      q ^ n
+        = q ^ t * q ^ (n - t) := by rw [← pow_add, Nat.add_sub_of_le htn]
       _ ≤ n * q ^ (n - t) := Nat.mul_le_mul_right _ hlarge
   have hlog : Real.log s ≤ ((n : ℝ) - t) * Real.log q := by
     have h := Real.log_le_log hs (show (s : ℝ) ≤ (q : ℝ) ^ (n - t) by exact_mod_cast hshift)
     simpa [Real.log_pow, Nat.cast_sub htn] using h
-  have hsize : (n : ℝ) * s ≤ (q : ℝ) ^ n := by
-    exact_mod_cast (Nat.mul_div_le (q ^ n) n)
-  have hexponent : (s : ℝ) * Real.log s + C * s <
-      (q : ℝ) ^ n * Real.log q := by
+  have hsize : (n : ℝ) * s ≤ (q : ℝ) ^ n := by exact_mod_cast (Nat.mul_div_le (q ^ n) n)
+  have hexponent : (s : ℝ) * Real.log s + C * s < (q : ℝ) ^ n * Real.log q := by
     nlinarith only [mul_le_mul_of_nonneg_left hlog hs.le,
       mul_le_mul_of_nonneg_right hsize hlogq.le, mul_lt_mul_of_pos_right hgap hs]
   have hcount : ((computableFunctions I n s).card : ℝ) < (q : ℝ) ^ (q ^ n : ℕ) := by
@@ -119,28 +117,31 @@ private theorem eventually_card_lt [Finite σ.Op] [Fintype U] [Nontrivial U]
       _ ≤ Real.exp ((s : ℝ) * Real.log s + C * s) := hC n s hn
       _ < Real.exp ((q : ℝ) ^ n * Real.log q) := Real.exp_lt_exp.mpr hexponent
       _ = (q : ℝ) ^ (q ^ n : ℕ) := by
-        rw [show (q : ℝ) ^ n = ((q ^ n : ℕ) : ℝ) by norm_cast,
-          Real.exp_nat_mul, Real.exp_log (zero_lt_one.trans hqR)]
+        rw [show (q : ℝ) ^ n = ((q ^ n : ℕ) : ℝ) by norm_cast, Real.exp_nat_mul,
+          Real.exp_log (zero_lt_one.trans hqR)]
   exact_mod_cast hcount
 
-/-- For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
-`|U|ⁿ/n` gates over the fixed finite signature, whose operations have arity at most two. -/
-theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
-    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
-    ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
-      ∀ c : Circuit σ n 1,
-        c.Computes I (single f) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
+/--
+For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
+`|U|ⁿ/n` gates over the fixed finite signature, whose operations have arity at most two.
+-/
+theorem exists_hard_function
+    [Finite σ.Op] [Finite U] [Nontrivial U]
+    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2)
+    : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U, ∀ c : Circuit σ n 1,
+      c.Computes I (single f) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
   classical
   let := Fintype.ofFinite U
   simp only [Nat.card_eq_fintype_card]
   apply eventually_atTop.mp
   filter_upwards [eventually_card_lt I arity_le, eventually_ge_atTop 1] with n hn hn0
-  obtain ⟨f, _, hf⟩ := Finset.exists_mem_notMem_of_card_lt_card
-    (s := computableFunctions I n (Fintype.card U ^ n / n)) (t := Finset.univ)
-    (by simpa only [Fintype.card_fun, Fintype.card_fin, Finset.card_univ] using hn)
+  obtain ⟨f, _, hf⟩ :=
+    Finset.exists_mem_notMem_of_card_lt_card (s := computableFunctions I n (Fintype.card U ^ n / n))
+      (t := Finset.univ)
+      (by simpa only [Fintype.card_fun, Fintype.card_fin, Finset.card_univ] using hn)
   refine ⟨f, fun c hc => ?_⟩
-  have hg : Fintype.card U ^ n / n < c.size := lt_of_not_ge fun hg =>
-    hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
+  have hg : Fintype.card U ^ n / n < c.size :=
+    lt_of_not_ge fun hg => hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
   apply (div_lt_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by omega : 0 < n)).mp hg
 

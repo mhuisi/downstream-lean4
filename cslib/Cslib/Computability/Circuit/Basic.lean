@@ -51,37 +51,46 @@ structure Circuit (σ : Signature) (inputCount outputCount : Nat) where
   /-- The input or internal-gate wire carrying each output. -/
   outputs : Fin outputCount → Wire inputCount size
 
-/-- The zero-gate circuit whose outputs are the inputs chosen by `select`. Projections,
-duplications, and permutations of the inputs cost no gates. -/
-def Circuit.wiring (σ : Signature) (select : Fin outputCount → Fin inputCount) :
-    Circuit σ inputCount outputCount :=
+/--
+The zero-gate circuit whose outputs are the inputs chosen by `select`. Projections,
+duplications, and permutations of the inputs cost no gates.
+-/
+def Circuit.wiring (σ : Signature) (select : Fin outputCount → Fin inputCount)
+    : Circuit σ inputCount outputCount :=
   ⟨.empty, fun output => Wire.input (select output)⟩
 
 /-- The zero-gate identity circuit, whose outputs are its inputs. -/
 abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount inputCount :=
   Circuit.wiring σ _root_.id
 
-@[simp] theorem Circuit.size_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).size = 0 := rfl
+@[simp]
+theorem Circuit.size_wiring (select : Fin outputCount → Fin inputCount)
+    : (Circuit.wiring σ select).size = 0 :=
+  rfl
 
-@[simp] theorem Circuit.program_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).program = .empty := rfl
+@[simp]
+theorem Circuit.program_wiring (select : Fin outputCount → Fin inputCount)
+    : (Circuit.wiring σ select).program = .empty :=
+  rfl
 
-@[simp] theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).outputs = fun output => Wire.input (select output) := rfl
+@[simp]
+theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount)
+    : (Circuit.wiring σ select).outputs = fun output => Wire.input (select output) :=
+  rfl
 
 /-- Every gate in a circuit has at most `r` arguments. -/
 def Circuit.FanInAtMost (c : Circuit σ inputCount outputCount) (r : Nat) : Prop :=
   c.program.FanInAtMost r
 
 /-- Bounded fan-in is decidable for every concrete circuit. -/
-instance Circuit.instDecidableFanInAtMost
-    (c : Circuit σ inputCount outputCount)
-    (r : Nat) : Decidable (c.FanInAtMost r) :=
+instance Circuit.instDecidableFanInAtMost (c : Circuit σ inputCount outputCount) (r : Nat)
+    : Decidable (c.FanInAtMost r) :=
   Program.instDecidableFanInAtMost c.program r
 
-@[simp] theorem Circuit.fanInAtMost_wiring (select : Fin outputCount → Fin inputCount)
-    (r : Nat) : (Circuit.wiring σ select).FanInAtMost r := trivial
+@[simp]
+theorem Circuit.fanInAtMost_wiring (select : Fin outputCount → Fin inputCount) (r : Nat)
+    : (Circuit.wiring σ select).FanInAtMost r :=
+  trivial
 
 /-- The depth of every designated output wire in a circuit. -/
 def Circuit.outputDepths (c : Circuit σ inputCount outputCount) : Fin outputCount → Nat :=
@@ -91,11 +100,14 @@ def Circuit.outputDepths (c : Circuit σ inputCount outputCount) : Fin outputCou
 def Circuit.depth (c : Circuit σ inputCount outputCount) : Nat :=
   Fin.foldl outputCount (fun depth k => max depth (c.outputDepths k)) 0
 
-@[simp] theorem Circuit.outputDepths_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).outputDepths = fun _ => 0 := rfl
+@[simp]
+theorem Circuit.outputDepths_wiring (select : Fin outputCount → Fin inputCount)
+    : (Circuit.wiring σ select).outputDepths = fun _ => 0 :=
+  rfl
 
-@[simp] theorem Circuit.depth_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).depth = 0 := by
+@[simp]
+theorem Circuit.depth_wiring (select : Fin outputCount → Fin inputCount)
+    : (Circuit.wiring σ select).depth = 0 := by
   unfold Circuit.depth
   simp only [Circuit.outputDepths_wiring, Nat.max_zero]
   clear select
@@ -105,82 +117,88 @@ def Circuit.depth (c : Circuit σ inputCount outputCount) : Nat :=
 
 /-- Read the designated output wires after evaluating the program. -/
 def Circuit.eval
-    (c : Circuit σ inputCount outputCount)
-    (i : Interpretation σ U)
-    (x : Fin inputCount → U) : Fin outputCount → U :=
+    (c : Circuit σ inputCount outputCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
 
 /-- Output `j` of a wiring circuit is input `select j`. -/
-@[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
-    (interpretation : Interpretation σ U) (input : Fin inputCount → U) :
-    (Circuit.wiring σ select).eval interpretation input = input ∘ select := rfl
-
-/-- A circuit computes `f` when its outputs agree with `f` on every input. -/
-def Circuit.Computes (c : Circuit σ inputCount outputCount)
-    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
-    Prop :=
-  ∀ x, c.eval interpretation x = f x
-
-/-- A single-valued function as a function with one output, which is what a circuit with one
-output computes. -/
-def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1 → U :=
-  fun x _ => f x
-
-@[simp] theorem single_apply (f : (Fin inputCount → U) → U) (x : Fin inputCount → U)
-    (i : Fin 1) : single f x i = f x :=
+@[simp]
+theorem Circuit.eval_wiring
+    (select : Fin outputCount → Fin inputCount) (interpretation : Interpretation σ U)
+    (input : Fin inputCount → U)
+    : (Circuit.wiring σ select).eval interpretation input = input ∘ select :=
   rfl
 
-/-- A circuit computes `f` on the support `S` when its outputs agree with `f` on every input in
-`S`; what `f` does outside `S` does not matter. -/
-def Circuit.ComputesOn (c : Circuit σ inputCount outputCount)
-    (interpretation : Interpretation σ U) (S : Set (Fin inputCount → U))
-    (f : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
+/-- A circuit computes `f` when its outputs agree with `f` on every input. -/
+def Circuit.Computes
+    (c : Circuit σ inputCount outputCount) (interpretation : Interpretation σ U)
+    (f : (Fin inputCount → U) → Fin outputCount → U)
+    : Prop :=
+  ∀ x, c.eval interpretation x = f x
+
+/--
+A single-valued function as a function with one output, which is what a circuit with one
+output computes.
+-/
+def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1 → U := fun x _ => f x
+
+@[simp]
+theorem single_apply (f : (Fin inputCount → U) → U) (x : Fin inputCount → U) (i : Fin 1)
+    : single f x i = f x :=
+  rfl
+
+/--
+A circuit computes `f` on the support `S` when its outputs agree with `f` on every input in
+`S`; what `f` does outside `S` does not matter.
+-/
+def Circuit.ComputesOn
+    (c : Circuit σ inputCount outputCount) (interpretation : Interpretation σ U)
+    (S : Set (Fin inputCount → U)) (f : (Fin inputCount → U) → Fin outputCount → U)
+    : Prop :=
   Set.EqOn (c.eval interpretation) f S
 
 /-- Computing on every input is computing. -/
-@[simp] theorem Circuit.computesOn_univ_iff (c : Circuit σ inputCount outputCount)
-    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
-    c.ComputesOn interpretation Set.univ f ↔ c.Computes interpretation f := by
+@[simp]
+theorem Circuit.computesOn_univ_iff
+    (c : Circuit σ inputCount outputCount) (interpretation : Interpretation σ U)
+    (f : (Fin inputCount → U) → Fin outputCount → U)
+    : c.ComputesOn interpretation Set.univ f ↔ c.Computes interpretation f := by
   rw [Circuit.ComputesOn, Set.eqOn_univ, funext_iff]
   rfl
 
 /-- A circuit that computes `f` computes it on every support. -/
-theorem Circuit.Computes.computesOn {c : Circuit σ inputCount outputCount}
-    {interpretation : Interpretation σ U} {f : (Fin inputCount → U) → Fin outputCount → U}
-    (h : c.Computes interpretation f) (S : Set (Fin inputCount → U)) :
-    c.ComputesOn interpretation S f :=
-  fun x _ => h x
+theorem Circuit.Computes.computesOn
+    {c : Circuit σ inputCount outputCount} {interpretation : Interpretation σ U}
+    {f : (Fin inputCount → U) → Fin outputCount → U} (h : c.Computes interpretation f)
+    (S : Set (Fin inputCount → U))
+    : c.ComputesOn interpretation S f := fun x _ =>
+  h x
 
 /-- A wiring circuit computes the selection of its inputs. -/
-theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)
-    (interpretation : Interpretation σ U) :
-    (Circuit.wiring σ select).Computes interpretation fun x => x ∘ select := by
+theorem Circuit.wiring_computes
+    (select : Fin outputCount → Fin inputCount) (interpretation : Interpretation σ U)
+    : (Circuit.wiring σ select).Computes interpretation fun x => x ∘ select := by
   intro x
   simp
 
 /-- Evaluating a circuit commutes with a homomorphism. -/
 theorem Circuit.map_eval
-    {i₁ : Interpretation σ U₁}
-    {i₂ : Interpretation σ U₂}
-    (c : Circuit σ inputCount outputCount)
-    (h : Homomorphism i₁ i₂)
-    (x : Fin inputCount → U₁) :
-    h.map ∘ c.eval i₁ x = c.eval i₂ (h.map ∘ x) := by
+    {i₁ : Interpretation σ U₁} {i₂ : Interpretation σ U₂}
+    (c : Circuit σ inputCount outputCount) (h : Homomorphism i₁ i₂) (x : Fin inputCount → U₁)
+    : h.map ∘ c.eval i₁ x = c.eval i₂ (h.map ∘ x) := by
   funext k
   exact congrFun (c.program.map_trace h x) (c.outputs k)
 
 /-- All internal-gate values followed by the designated output values. -/
 def Circuit.computation
-    (c : Circuit σ inputCount outputCount)
-    (i : Interpretation σ U)
-    (x : Fin inputCount → U) : Fin (c.size + outputCount) → U :=
+    (c : Circuit σ inputCount outputCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    : Fin (c.size + outputCount) → U :=
   Fin.addCases (c.program.eval i x) (c.eval i x)
 
 /-- The input and internal-gate values followed by the designated outputs. -/
 def Circuit.trace
-    (c : Circuit σ inputCount outputCount)
-    (i : Interpretation σ U)
-    (x : Fin inputCount → U) : Fin (inputCount + c.size + outputCount) → U :=
+    (c : Circuit σ inputCount outputCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    : Fin (inputCount + c.size + outputCount) → U :=
   Fin.addCases (Fin.addCases x (c.program.eval i x)) (c.eval i x)
 
 end Cslib.Circuits

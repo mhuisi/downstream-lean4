@@ -29,9 +29,11 @@ satisfaction as well as mathematical connections such as combinatorics.
 
 namespace Cslib
 
-/-- The class of relation algebras. Note the notational differences from the literature. In addition
+/--
+The class of relation algebras. Note the notational differences from the literature. In addition
 to inheriting Mathlib's notations for Boolean algebras, `star` is used for converse, and the monoid
-reduct for composition uses multiplicative notation. -/
+reduct for composition uses multiplicative notation.
+-/
 class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul α where
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
@@ -41,23 +43,24 @@ namespace RelationAlgebra
 
 /-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
 @[instance_reducible]
-def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
-    (sup_comm : ∀ a b : α, a ⊔ b = b ⊔ a)
-    (sup_assoc : ∀ a b c : α, (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c))
+def ofTarski
+    {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
+    (sup_comm : ∀ a b : α, a ⊔ b = b ⊔ a) (sup_assoc : ∀ a b c : α, (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c))
     (huntington : ∀ a b : α, (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a)
-    (mul_assoc : ∀ a b c : α, (a * b) * c = a * (b * c))
-    (mul_one : ∀ a : α, a * 1 = a)
+    (mul_assoc : ∀ a b c : α, (a * b) * c = a * (b * c)) (mul_one : ∀ a : α, a * 1 = a)
     (star_involutive : ∀ a : α, star (star a) = a)
     (star_mul : ∀ a b : α, star (a * b) = star b * star a)
     (sup_mul : ∀ a b c : α, (a ⊔ b) * c = a * c ⊔ b * c)
     (star_sup : ∀ a b : α, star (a ⊔ b) = star a ⊔ star b)
-    (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α where
-  __ := @HuntingtonAlgebra.instBooleanAlgebra α {
-    default := 1
-    assoc := sup_assoc
-    comm := sup_comm
-    huntington := huntington
-  }
+    (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ)
+    : RelationAlgebra α where
+  __ :=
+    @HuntingtonAlgebra.instBooleanAlgebra α {
+      default := 1
+      assoc := sup_assoc
+      comm := sup_comm
+      huntington := huntington
+    }
   mul_assoc := mul_assoc
   mul_one := mul_one
   one_mul a := by
@@ -105,24 +108,29 @@ def IdentityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 /-- The set of symmetric diversity atoms, those below the complement of identity. -/
 def SymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
 
-/-- The set of nonsymmetric diversity atoms. The diversity condition follows from
-`le_compl_one_of_mem_nonsymmetricDiversityAtoms`. -/
+/--
+The set of nonsymmetric diversity atoms. The diversity condition follows from
+`le_compl_one_of_mem_nonsymmetricDiversityAtoms`.
+-/
 def NonsymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ star a ≠ a}
 
 /-- Every nonsymmetric atom lies below the complement of identity. -/
-theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
-    (h : a ∈ NonsymmetricDiversityAtoms) : a ≤ 1ᶜ := by
+theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α} (h : a ∈ NonsymmetricDiversityAtoms)
+    : a ≤ 1ᶜ := by
   rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
   intro ha
-  have hstar : a ≤ star a := by calc
-     a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
-     _ ≤ a * (1 ⊓ star a * 1) := left_modular a 1 1
-     _ ≤ 1 * (1 ⊓ star a * 1) := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr ha]
-     _ = 1 ⊓ star a := by rw [one_mul, mul_one]
-     _ ≤ star a := inf_le_right
-  have : star a ≤ a := by calc
-    star a ≤ star (star a) := star_mono hstar
-    _ = a := star_star a
+  have hstar : a ≤ star a := by
+    calc
+      a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
+      _ ≤ a * (1 ⊓ star a * 1) := left_modular a 1 1
+      _ ≤ 1 * (1 ⊓ star a * 1) := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr ha]
+      _ = 1 ⊓ star a := by rw [one_mul, mul_one]
+      _ ≤ star a := inf_le_right
+  have : star a ≤ a := by
+    calc
+      star a
+        ≤ star (star a) := star_mono hstar
+      _ = a := star_star a
   cases h
   grind
 

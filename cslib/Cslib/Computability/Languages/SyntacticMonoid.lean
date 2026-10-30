@@ -29,8 +29,10 @@ namespace Language
 
 open Cslib.Language FreeMonoid
 
-/-- Converting a (two-sided) congruence `c` on finite words to a congruence relation
-on the (multiplicative) free monoid. -/
+/--
+Converting a (two-sided) congruence `c` on finite words to a congruence relation
+on the (multiplicative) free monoid.
+-/
 def Congruence.toCon [c : Congruence α] : Con (FreeMonoid α) where
   r := c.r
   iseqv := c.iseqv
@@ -39,31 +41,37 @@ def Congruence.toCon [c : Congruence α] : Con (FreeMonoid α) where
     have h_xyxz : c.eq (x * y) (x * z) := c.left_cov.elim x h_yz
     exact c.iseqv.trans h_wyxy h_xyxz
 
-/-- The syntactic monoid of a language `l` is the quotient of the free monoid
-by the Myhill congruence of `l`. -/
+/--
+The syntactic monoid of a language `l` is the quotient of the free monoid
+by the Myhill congruence of `l`.
+-/
 abbrev SyntacticMonoid (l : Language α) := l.MyhillCongruence.toCon.Quotient
 
-/-- The natural homomorphism from `FreeMonoid α` to `l.SyntacticMonoid` induced
-by the Myhill congruence of `l`. -/
+/--
+The natural homomorphism from `FreeMonoid α` to `l.SyntacticMonoid` induced
+by the Myhill congruence of `l`.
+-/
 abbrev homSyntacticMonoid (l : Language α) := l.MyhillCongruence.toCon.mk'
 
 /-- A language `l` is regular if and only if its syntactic monoid is finite. -/
-theorem IsRegular.iff_finite_syntacticMonoid (l : Language α) :
-    l.IsRegular ↔ Finite (l.SyntacticMonoid) :=
+theorem IsRegular.iff_finite_syntacticMonoid (l : Language α)
+    : l.IsRegular ↔ Finite (l.SyntacticMonoid) :=
   IsRegular.iff_finite_myhillQuotient l
 
 /-- The congruence induced by `homSyntacticMonoid` is exactly the Myhill congruence. -/
-theorem homSyntacticMonoid_iff_myhillCongruence {l : Language α} {x y : List α} :
-    l.homSyntacticMonoid (ofList x) = l.homSyntacticMonoid (ofList y) ↔
-    l.MyhillCongruence.eq x y := by
+theorem homSyntacticMonoid_iff_myhillCongruence {l : Language α} {x y : List α}
+    : l.homSyntacticMonoid (ofList x) = l.homSyntacticMonoid (ofList y)
+      ↔ l.MyhillCongruence.eq x y := by
   simp only [Con.coe_mk', Con.eq]
   rfl
 
-/-- Any regular language is the preimage of a subset of a finite monoid `M`
-under a monoid homomorphism from the free monoid on its alphabet to `M`. -/
-theorem IsRegular.exists_finite_monoid {l : Language α} (h : l.IsRegular) :
-    ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
-    (f ∘ ofList) ⁻¹' s = l := by
+/--
+Any regular language is the preimage of a subset of a finite monoid `M`
+under a monoid homomorphism from the free monoid on its alphabet to `M`.
+-/
+theorem IsRegular.exists_finite_monoid {l : Language α} (h : l.IsRegular)
+    : ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
+      (f ∘ ofList) ⁻¹' s = l := by
   use l.SyntacticMonoid, Con.monoid _, (iff_finite_syntacticMonoid l).mp h,
     l.homSyntacticMonoid, (l.homSyntacticMonoid ∘ ofList) '' l
   apply le_antisymm
@@ -78,8 +86,10 @@ section FiniteMonoid
 
 variable {M : Type*} [Monoid M] (f : FreeMonoid α →* M)
 
-/-- Given a monoid homomorphism `f` from `FreeMonoid α` to another monoid `M`,
-`inducedCongr f` is the language congruence induced by `f`. -/
+/--
+Given a monoid homomorphism `f` from `FreeMonoid α` to another monoid `M`,
+`inducedCongr f` is the language congruence induced by `f`.
+-/
 -- NOTE: This is in fact a two-sided congruence, but we need only the `RightCongruence` part here.
 @[implicit_reducible]
 def inducedCongr : RightCongruence α where
@@ -92,15 +102,17 @@ def inducedCongr : RightCongruence α where
 instance [Finite M] : Finite (Quotient (inducedCongr f).eq) :=
   Finite.of_equiv _ (Setoid.quotientKerEquivRange (f ∘ ofList)).symm
 
-theorem inducedCongr_ofList (x : List α) :
-    (f ∘ ofList) ⁻¹' {(f ∘ ofList) x} = (inducedCongr f).eqvCls ⟦ x ⟧ := by
+theorem inducedCongr_ofList (x : List α)
+    : (f ∘ ofList) ⁻¹' {(f ∘ ofList) x} = (inducedCongr f).eqvCls ⟦ x ⟧ := by
   ext y
   simp [Quotient.eq]
 
-/-- The preimage of a singleton in a finite monoid `M` under a monoid homomorphism
-from the free monoid to `M` is regular. -/
-theorem IsRegular.of_finite_monoid_singleton [Finite M]
-    (m : M) : IsRegular ((f ∘ ofList) ⁻¹' {m}) := by
+/--
+The preimage of a singleton in a finite monoid `M` under a monoid homomorphism
+from the free monoid to `M` is regular.
+-/
+theorem IsRegular.of_finite_monoid_singleton [Finite M] (m : M)
+    : IsRegular ((f ∘ ofList) ⁻¹' {m}) := by
   by_cases h : (f ∘ ofList) ⁻¹' {m} = ∅
   · rw [h]
     exact IsRegular.zero
@@ -108,10 +120,11 @@ theorem IsRegular.of_finite_monoid_singleton [Finite M]
     rw [inducedCongr_ofList]
     exact IsRegular.congr_fin_index (c := inducedCongr f) _
 
-/-- The preimage of a subset of a finite monoid `M` under a monoid homomorphism
-from the free monoid to `M` is regular. -/
-theorem IsRegular.of_finite_monoid [Finite M]
-    (s : Set M) : IsRegular ((f ∘ ofList) ⁻¹' s) := by
+/--
+The preimage of a subset of a finite monoid `M` under a monoid homomorphism
+from the free monoid to `M` is regular.
+-/
+theorem IsRegular.of_finite_monoid [Finite M] (s : Set M) : IsRegular ((f ∘ ofList) ⁻¹' s) := by
   have h : (f ∘ ofList) ⁻¹' s = ⨆ m ∈ s, (f ∘ ofList) ⁻¹' {m} := by
     simp only [Set.iSup_eq_iUnion, Set.biUnion_preimage_singleton]
   rw [h]
@@ -120,12 +133,14 @@ theorem IsRegular.of_finite_monoid [Finite M]
 
 end FiniteMonoid
 
-/-- A language is regular if and only if it is the preimage of a subset of a finite monoid `M`
-under a monoid homomorphism from the free monoid on its alphabet to `M`. -/
-theorem IsRegular.iff_finite_monoid {l : Language α} :
-    l.IsRegular ↔
-    ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
-    (f ∘ ofList) ⁻¹' s = l := by
+/--
+A language is regular if and only if it is the preimage of a subset of a finite monoid `M`
+under a monoid homomorphism from the free monoid on its alphabet to `M`.
+-/
+theorem IsRegular.iff_finite_monoid {l : Language α}
+    : l.IsRegular
+      ↔ ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
+        (f ∘ ofList) ⁻¹' s = l := by
   apply Iff.intro
   case mp =>
     intro h

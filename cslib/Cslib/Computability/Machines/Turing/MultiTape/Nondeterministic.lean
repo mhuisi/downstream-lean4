@@ -55,17 +55,21 @@ namespace RelSeries
 variable {α β : Type*} {r : SetRel α α} {s : SetRel β β}
 
 /-- A member of a mapped series is the image of a member. -/
-lemma exists_of_mem_map {p : RelSeries r} {f : r.Hom s} {b : β} (hb : b ∈ p.map f) :
-    ∃ a ∈ p, f a = b :=
+lemma exists_of_mem_map {p : RelSeries r} {f : r.Hom s} {b : β} (hb : b ∈ p.map f)
+    : ∃ a ∈ p, f a = b :=
   let ⟨i, hi⟩ := hb
   ⟨p i, ⟨i, rfl⟩, hi⟩
 
 /-- A member of two joined series lies on one of them. -/
-lemma mem_or_mem_of_mem_smash {p q : RelSeries r} {h : p.last = q.head} {a : α}
-    (ha : a ∈ p.smash q h) : a ∈ p ∨ a ∈ q := by
+lemma mem_or_mem_of_mem_smash
+    {p q : RelSeries r} {h : p.last = q.head} {a : α} (ha : a ∈ p.smash q h)
+    : a ∈ p ∨ a ∈ q := by
   obtain ⟨j, rfl⟩ := ha
-  refine Fin.addCases (m := p.length) (n := q.length + 1) (fun j => .inl ⟨j.castSucc, ?_⟩)
-    (fun j => .inr ⟨j, ?_⟩) j <;> simp [smash]
+  refine Fin.addCases (m := p.length) (n := q.length + 1)
+      (fun j => .inl ⟨j.castSucc, ?_⟩)
+      (fun j => .inr ⟨j, ?_⟩)
+      j
+    <;> simp [smash]
 
 end RelSeries
 
@@ -81,43 +85,46 @@ finite.
 structure MultiTapeNTM (k : ℕ) (Symbol State : Type*) where
   /-- initial state -/
   q₀ : State
-  /-- transition relation: which combinations of state, current input symbol, tuple of work head
-  symbols and resulting actions are valid transitions -/
-  Tr (q : State) (input : Option Symbol) (work : Fin k → Option Symbol)
-    (action : Action k Symbol State) : Prop
+  /--
+  transition relation: which combinations of state, current input symbol, tuple of work head
+  symbols and resulting actions are valid transitions
+  -/
+  Tr
+    (q : State) (input : Option Symbol) (work : Fin k → Option Symbol)
+    (action : Action k Symbol State)
+    : Prop
 
 namespace MultiTapeNTM
 
 variable {ntm : MultiTapeNTM k Symbol State}
 
-/-- The one-step relation on configurations. A halted configuration steps only to itself. A running
-configuration steps by applying any action related to its state and read symbols by `Tr`. -/
+/--
+The one-step relation on configurations. A halted configuration steps only to itself. A running
+configuration steps by applying any action related to its state and read symbols by `Tr`.
+-/
 @[scoped grind =]
 def Step (ntm : MultiTapeNTM k Symbol State) (c₁ c₂ : Cfg k Symbol State input) : Prop :=
   match c₁.state with
   | none => c₂ = c₁
-  | some q =>
-    ∃ action, ntm.Tr q c₁.inputSymbol c₁.workTapeSymbols action ∧ c₂ = action.apply c₁
+  | some q => ∃ action, ntm.Tr q c₁.inputSymbol c₁.workTapeSymbols action ∧ c₂ = action.apply c₁
 
 /-- A halted configuration steps only to itself. -/
-lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) :
-    ntm.Step c c' ↔ c' = c := by
+lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) : ntm.Step c c' ↔ c' = c := by
   simp [Step, h]
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
-def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
-    Cfg k Symbol State input :=
+def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) : Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
 /-- The one-step relation on configurations for `input`, as a set of pairs. -/
-abbrev stepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
-    SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
+abbrev stepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
+    : SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
   {(c, c') | ntm.Step c c'}
 
 /-- The steps of `ntm` from running configurations: the steps within a run until it halts. -/
-abbrev runningStepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
-    SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
+abbrev runningStepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
+    : SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
   {(c, c') | ¬c.Halted ∧ ntm.Step c c'}
 
 /-- A nonempty list of configurations joined by steps of `ntm`. -/
@@ -126,16 +133,18 @@ abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
 
 namespace RunPath
 
-/-- A run path mapped along a step-preserving map of configurations: `RelSeries.map`, typed as a
-run path of the target machine. -/
-abbrev map {k' : ℕ} {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k' Symbol State'}
-    (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) :
-    ntm'.RunPath input' :=
+/--
+A run path mapped along a step-preserving map of configurations: `RelSeries.map`, typed as a
+run path of the target machine.
+-/
+abbrev map
+    {k' : ℕ} {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k' Symbol State'}
+    (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
+    : ntm'.RunPath input' :=
   RelSeries.map p f
 
 /-- The output only grows along a run path. -/
-lemma length_output_mono (p : ntm.RunPath input) :
-    Monotone fun i ↦ (p i).output.length := by
+lemma length_output_mono (p : ntm.RunPath input) : Monotone fun i ↦ (p i).output.length := by
   apply Fin.monotone_iff_le_succ.mpr
   intro i
   have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
@@ -151,32 +160,42 @@ lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.las
     simpa using ((step_of_halt hh).mp hc).trans hp
 
 /-- The last configuration equals any earlier halted configuration. -/
-lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
-    (h : (p i).Halted) : p.last = p i := by
+lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1)) (h : (p i).Halted)
+    : p.last = p i := by
   simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
 
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length
 
-/-- A path that ends halted runs from its head to its last configuration in running steps, up to
-its first halted configuration. -/
-lemma exists_running (p : ntm.RunPath input) (h : p.last.Halted) :
-    ∃ q : RelSeries (ntm.runningStepRel input), q.head = p.head ∧ q.last = p.last ∧
-      q.length ≤ p.length ∧ ∀ c ∈ q, c ∈ p := by
+/--
+A path that ends halted runs from its head to its last configuration in running steps, up to
+its first halted configuration.
+-/
+lemma exists_running (p : ntm.RunPath input) (h : p.last.Halted)
+    : ∃ q : RelSeries (ntm.runningStepRel input),
+      q.head = p.head ∧ q.last = p.last ∧ q.length ≤ p.length ∧ ∀ c ∈ q, c ∈ p := by
   classical
   -- cut the path at its first halted configuration
   have hex : ∃ n, ∃ hn : n < p.length + 1, (p ⟨n, hn⟩).Halted := ⟨p.length, by lia, h⟩
   obtain ⟨hn, hhalt⟩ := Nat.find_spec hex
-  refine ⟨⟨Nat.find hex, fun i => p ⟨i, by lia⟩, fun i =>
-    ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
-    (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ => ⟨_, hi⟩⟩
+  refine ⟨
+    ⟨
+      Nat.find hex,
+      fun i => p ⟨i, by lia⟩,
+      fun i => ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩
+    ⟩,
+    rfl,
+    (p.last_eq_of_halted _ hhalt).symm,
+    Nat.lt_succ_iff.mp hn,
+    fun _ ⟨i, hi⟩ => ⟨_, hi⟩
+  ⟩
 
 end RunPath
 
 /-- A machine never reads its output tape, so prepending a word to the output preserves steps. -/
 @[simps]
-def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
-    (ntm.stepRel input).Hom (ntm.stepRel input) where
+def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol)
+    : (ntm.stepRel input).Hom (ntm.stepRel input) where
   toFun c := c.prependOutput pre
   map_rel' {c c'} h := by
     change ntm.Step c c' at h
@@ -200,15 +219,17 @@ def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
 end ComputationPath
 
-/-- Every computation path on `input` of at least `t` steps ends in a halted configuration.
-A path ending in a stuck configuration must have fewer than `t` steps. -/
+/--
+Every computation path on `input` of at least `t` steps ends in a halted configuration.
+A path ending in a stuck configuration must have fewer than `t` steps.
+-/
 def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, t ≤ p.time → p.last.Halted
 
 /-- A time bound can be increased. -/
-lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
-    (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
-  fun p hp ↦ h p (ht.trans hp)
+lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ} (h : ntm.RunsInTime input t) (ht : t ≤ t')
+    : ntm.RunsInTime input t' := fun p hp ↦
+  h p (ht.trans hp)
 
 end MultiTapeNTM
 

@@ -25,8 +25,7 @@ def IsSyncTrace (flts : FLTS State Label) (μs : List Label) : Prop :=
   ∀ s₁ s₂ : State, flts.mtr s₁ μs = flts.mtr s₂ μs
 
 /-- `flts` is synchronising, i.e., it has at least one synchronising trace. -/
-def HasSyncTrace (flts : FLTS State Label) : Prop :=
-  ∃ μs : List Label, flts.IsSyncTrace μs
+def HasSyncTrace (flts : FLTS State Label) : Prop := ∃ μs : List Label, flts.IsSyncTrace μs
 
 /-- Černý conjecture: for any synchronising `FLTS` with `n` states, there exists a synchronising
 trace of length at most `(n-1)^2`. -/
