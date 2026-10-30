@@ -30,8 +30,10 @@ universe u v w
 
 namespace Cslib.RelationAlgebra
 
-/-- Relations over a type `α`. This definition exists because we need to prevent some instances from
-  from Mathlib being included. -/
+/--
+Relations over a type `α`. This definition exists because we need to prevent some instances from
+from Mathlib being included.
+-/
 def SquareRelations (α : Type u) : Type u := SetRel α α
 
 namespace SquareRelations
@@ -78,4 +80,3 @@ proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v}
     Representation α ι β → Representable α
 
 end Cslib.RelationAlgebra
-

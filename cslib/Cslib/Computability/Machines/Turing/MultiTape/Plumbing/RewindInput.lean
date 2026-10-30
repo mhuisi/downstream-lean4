@@ -37,23 +37,29 @@ namespace Turing.MultiTapeTM
 
 variable {Symbol : Type*} {input : List Symbol}
 
-/-- The control states of the rewinding machine: `start` takes one unconditional step left,
-`walk` moves left towards the left boundary of the input. -/
+/--
+The control states of the rewinding machine: `start` takes one unconditional step left,
+`walk` moves left towards the left boundary of the input.
+-/
 public inductive RewindState : Type
   | start
   | walk
-  deriving DecidableEq
+deriving DecidableEq
 
 public instance : Fintype RewindState := ⟨{.start, .walk}, fun q => by cases q <;> simp⟩
 
-/-- The only kind of action the rewinding machine takes: move the input head by `m` and enter
-`state`, without output. -/
+/--
+The only kind of action the rewinding machine takes: move the input head by `m` and enter
+`state`, without output.
+-/
 abbrev inputAction (m : SignType) (state : Option RewindState) : Action 0 Symbol RewindState :=
   ⟨m, nofun, none, state⟩
 
-/-- The rewinding machine. In state `start` it moves the input head left, unconditionally, and
+/--
+The rewinding machine. In state `start` it moves the input head left, unconditionally, and
 enters `walk`. In state `walk` it moves left over a symbol; on the first blank it moves right and
-halts. The machine has no work tapes and nothing is output. -/
+halts. The machine has no work tapes and nothing is output.
+-/
 public def rewindInput (Symbol : Type*) : MultiTapeTM 0 Symbol RewindState :=
   ofTr .start fun q inp _ =>
     match q, inp with
@@ -66,20 +72,22 @@ namespace Rewind
 variable {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ} {out : List Symbol}
 
 /-- A live step moves the input head and changes the state; nothing else changes. -/
-lemma step_eq {c : Cfg 0 Symbol RewindState input} {q : RewindState} (hc : c.state = some q) :
-    (rewindInput Symbol).step c =
-      let a := (rewindInput Symbol).tr q c.inputSymbol c.workTapeSymbols
-      ⟨a.state, moveInputPos c.inputPos a.inputTape, c.workTapes, c.workTapePos, c.output⟩ := by
+lemma step_eq {c : Cfg 0 Symbol RewindState input} {q : RewindState} (hc : c.state = some q)
+    : (rewindInput Symbol).step c
+      = let a := (rewindInput Symbol).tr q c.inputSymbol c.workTapeSymbols
+        ⟨a.state, moveInputPos c.inputPos a.inputTape, c.workTapes, c.workTapePos, c.output⟩ := by
   rw [step_of_state hc]
   refine Cfg.ext rfl rfl (Subsingleton.elim _ _) (Subsingleton.elim _ _) ?_
   simp only [rewindInput, tr_ofTr, Action.apply_output]
   split <;> simp
 
-/-- From `walk` at position `p ≤ input.length` the machine halts with the input head at position `1`
-after `p + 1` steps. -/
-lemma runFrom_walk (p : Fin (input.length + 2)) (hp : p.val ≤ input.length) :
-    (rewindInput Symbol).runFrom ⟨some .walk, p, tapes, heads, out⟩ (p.val + 1) =
-      ⟨none, 1, tapes, heads, out⟩ := by
+/--
+From `walk` at position `p ≤ input.length` the machine halts with the input head at position `1`
+after `p + 1` steps.
+-/
+lemma runFrom_walk (p : Fin (input.length + 2)) (hp : p.val ≤ input.length)
+    : (rewindInput Symbol).runFrom ⟨some .walk, p, tapes, heads, out⟩ (p.val + 1)
+      = ⟨none, 1, tapes, heads, out⟩ := by
   induction hj : p.val generalizing p with
   | zero =>
     obtain rfl : p = 0 := Fin.ext hj
@@ -94,12 +102,16 @@ lemma runFrom_walk (p : Fin (input.length + 2)) (hp : p.val ≤ input.length) :
 
 end Rewind
 
-/-- From its initial state at input position `p` the machine halts after `p - 1 + 2` steps, with
-the input head at position `1` and everything else unchanged. -/
-public theorem runFrom_rewindInput (p : Fin (input.length + 2))
-    (tapes : Fin 0 → ℤ → Option Symbol) (heads : Fin 0 → ℤ) (out : List Symbol) :
-    (rewindInput Symbol).runFrom ⟨some (rewindInput Symbol).q₀, p, tapes, heads, out⟩
-      (p.val - 1 + 2) = ⟨none, 1, tapes, heads, out⟩ := by
+/--
+From its initial state at input position `p` the machine halts after `p - 1 + 2` steps, with
+the input head at position `1` and everything else unchanged.
+-/
+public theorem runFrom_rewindInput
+    (p : Fin (input.length + 2)) (tapes : Fin 0 → ℤ → Option Symbol) (heads : Fin 0 → ℤ)
+    (out : List Symbol)
+    : (rewindInput Symbol).runFrom ⟨some (rewindInput Symbol).q₀, p, tapes, heads, out⟩
+        (p.val - 1 + 2)
+      = ⟨none, 1, tapes, heads, out⟩ := by
   have h : (moveInputPos p .neg).val = p.val - 1 := by grind [SignType.cast]
   rw [runFrom, Function.iterate_succ_apply, Rewind.step_eq rfl, ← runFrom, ← h]
   simp only [rewindInput, tr_ofTr]

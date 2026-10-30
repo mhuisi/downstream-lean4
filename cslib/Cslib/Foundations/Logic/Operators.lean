@@ -47,8 +47,7 @@ def finiteAnd [HasAnd α] [Top α] (as : List α) : α := as.foldr (· ∧ ·) �
 theorem finiteAnd_nil [HasAnd α] [Top α] : ⋀([] : List α) = ⊤ := rfl
 
 @[simp, scoped grind =]
-theorem finiteAnd_cons [HasAnd α] [Top α] (a : α) (as : List α) :
-    ⋀(a :: as) = (a ∧ ⋀as) := rfl
+theorem finiteAnd_cons [HasAnd α] [Top α] (a : α) (as : List α) : ⋀(a :: as) = (a ∧ ⋀as) := rfl
 
 /-- Finite disjunction, with empty disjunction equal to falsehood. -/
 def finiteOr [HasOr α] [Bot α] (as : List α) : α := as.foldr (· ∨ ·) ⊥
@@ -59,8 +58,7 @@ def finiteOr [HasOr α] [Bot α] (as : List α) : α := as.foldr (· ∨ ·) ⊥
 theorem finiteOr_nil [HasOr α] [Bot α] : ⋁([] : List α) = ⊥ := rfl
 
 @[simp, scoped grind =]
-theorem finiteOr_cons [HasOr α] [Bot α] (a : α) (as : List α) :
-    ⋁(a :: as) = (a ∨ ⋁as) := rfl
+theorem finiteOr_cons [HasOr α] [Bot α] (a : α) (as : List α) : ⋁(a :: as) = (a ∨ ⋁as) := rfl
 
 /-- The type `α` has an implication connective (`→`). -/
 class HasImp (α : Type*) where
@@ -91,7 +89,8 @@ section Modal
 
 /-- The type `α` has a family of triangle operators (`Δ`). -/
 class HasTriangle (α : Type*) (τ : outParam PFunctor) where
-  /-- `Δ[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at some respective related states.
+  /--
+  `Δ[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at some respective related states.
   -/
   triangle (op : τ.A) (arg : τ.B op → α) : α
 
@@ -128,23 +127,29 @@ class HasDynamicBox (α : Type*) (β : outParam Type*) where
 
 @[inherit_doc] scoped notation "d[" a "]" φ:max => HasDynamicBox.dynBox a φ
 
-/-- A family of triangle operators over induces dynamic diamond modalities by applying each operator
-to the constant argument family. -/
+/--
+A family of triangle operators over induces dynamic diamond modalities by applying each operator
+to the constant argument family.
+-/
 instance [HasTriangle α τ] : HasDynamicDiamond α τ.A where
   dynDiamond op φ := Δ[op](PFunctor.const op φ)
 
 @[simp, scoped grind =, modal =]
-theorem dynDiamond_eq_triangle [HasTriangle α τ] (op : τ.A) (φ : α) :
-    (d⟨op⟩φ) = (Δ[op](PFunctor.const op φ)) := rfl
+theorem dynDiamond_eq_triangle [HasTriangle α τ] (op : τ.A) (φ : α)
+    : (d⟨op⟩φ) = (Δ[op](PFunctor.const op φ)) :=
+  rfl
 
-/-- A family of nabla operators induces dynamic box modalities by applying each operator to the
-constant argument family. -/
+/--
+A family of nabla operators induces dynamic box modalities by applying each operator to the
+constant argument family.
+-/
 instance [HasNabla α τ] : HasDynamicBox α τ.A where
   dynBox op φ := ∇[op](PFunctor.const op φ)
 
 @[simp, scoped grind =, modal =]
-theorem dynBox_eq_nabla [HasNabla α τ] (op : τ.A) (φ : α) :
-    (d[op]φ) = (∇[op](PFunctor.const op φ)) := rfl
+theorem dynBox_eq_nabla [HasNabla α τ] (op : τ.A) (φ : α)
+    : (d[op]φ) = (∇[op](PFunctor.const op φ)) :=
+  rfl
 
 end Dynamic
 
@@ -171,16 +176,15 @@ instance [Unique β] [HasDynamicDiamond α β] : HasDiamond α where
   diamond φ := d⟨default⟩φ
 
 @[simp, scoped grind =, modal =]
-theorem diamond_eq_dynDiamond [Unique β] [HasDynamicDiamond α β] {φ : α} :
-    (◇φ) = (d⟨default⟩φ) := rfl
+theorem diamond_eq_dynDiamond [Unique β] [HasDynamicDiamond α β] {φ : α} : (◇φ) = (d⟨default⟩φ) :=
+  rfl
 
 /-- A dynamic box modality with a unique action induces a basic box modality. -/
 instance [Unique β] [HasDynamicBox α β] : HasBox α where
   box φ := d[default]φ
 
 @[simp, scoped grind =, modal =]
-theorem box_eq_dynBox [Unique β] [HasDynamicBox α β] {φ : α} :
-    (□φ) = (d[default]φ) := rfl
+theorem box_eq_dynBox [Unique β] [HasDynamicBox α β] {φ : α} : (□φ) = (d[default]φ) := rfl
 
 end Unimodal
 

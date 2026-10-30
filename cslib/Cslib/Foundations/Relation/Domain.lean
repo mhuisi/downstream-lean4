@@ -31,8 +31,10 @@ theorem emptyHrelation_apply (a : α) (b : β) : emptyHRelation a b ↔ False :=
 
 variable {β : Type*} {r : α → β → Prop}
 
-@[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
-@[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
+@[simp, grind =]
+lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
+@[simp, grind =]
+lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
 
 theorem of_dom (hab : r a b) : a ∈ dom r := by grind
 theorem of_cod (hab : r a b) : b ∈ cod r := by grind
@@ -60,21 +62,19 @@ lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyHRelation where
     grind => have : b ∈ cod r; finish
   mpr h := by grind
 
-@[simp]
-lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
+@[simp] lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
 
-@[simp]
-lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
+@[simp] lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
 
-theorem _root_.Std.Trichotomous.subsingleton_cod (r : α → α → Prop) [Std.Trichotomous r] :
-    Subsingleton ((cod r)ᶜ : Set α) := by
+theorem _root_.Std.Trichotomous.subsingleton_cod (r : α → α → Prop) [Std.Trichotomous r]
+    : Subsingleton ((cod r)ᶜ : Set α) := by
   constructor
   rintro ⟨b₁, _⟩ ⟨b₂, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b₁ b₂
   grind
 
-theorem _root_.Std.Trichotomous.subsingleton_dom (r : α → α → Prop) [Std.Trichotomous r] :
-    Subsingleton ((dom r)ᶜ : Set α) := by
+theorem _root_.Std.Trichotomous.subsingleton_dom (r : α → α → Prop) [Std.Trichotomous r]
+    : Subsingleton ((dom r)ᶜ : Set α) := by
   constructor
   rintro ⟨a₁, _⟩ ⟨a₂, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂

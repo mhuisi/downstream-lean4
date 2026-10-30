@@ -25,8 +25,7 @@ def toFrame : Frame State (mkUnary Label) := Frame.ofRelations (fun μ s s' => l
 
 instance : Coe (LTS State Label) (Frame State (PFunctor.mkUnary Label)) := ⟨LTS.toFrame⟩
 
-@[simp]
-lemma toFrame_r_iff_tr : lts.toFrame.r μ s f ↔ lts.Tr s μ (f default) := by rfl
+@[simp] lemma toFrame_r_iff_tr : lts.toFrame.r μ s f ↔ lts.Tr s μ (f default) := by rfl
 
 @[simp, modal =]
 lemma toFrame_diagonal_iff_tr : lts.toFrame.diagonal μ s s' ↔ lts.Tr s μ s' := by rfl

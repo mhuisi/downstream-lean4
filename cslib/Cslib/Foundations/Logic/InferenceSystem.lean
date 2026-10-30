@@ -46,8 +46,7 @@ namespace InferenceSystem
 
 /-- Rewrites the conclusion of a proof into an equal one. -/
 @[scoped grind =]
-def rwConclusion [InferenceSystem S α] {Γ Δ : α} (h : Γ = Δ) (p : S⇓Γ) : S⇓Δ :=
-  h ▸ p
+def rwConclusion [InferenceSystem S α] {Γ Δ : α} (h : Γ = Δ) (p : S⇓Γ) : S⇓Δ := h ▸ p
 
 /-- `a` is derivable in `S` if it is the conclusion of some derivation. -/
 def DerivableIn S [InferenceSystem S α] (a : α) := Nonempty (S⇓a)
@@ -62,8 +61,8 @@ theorem DerivableIn.fromDerivation [InferenceSystem S α] {a : α} (d : S⇓a) :
 instance [InferenceSystem S α] {a : α} : Coe (S⇓a) (DerivableIn S a) := ⟨DerivableIn.fromDerivation⟩
 
 /-- Extracts (noncomputably) a derivation from the fact that a conclusion is derivable. -/
-noncomputable def DerivableIn.toDerivation [InferenceSystem S α] {a : α} (d : DerivableIn S a) :
-    S⇓a :=
+noncomputable def DerivableIn.toDerivation [InferenceSystem S α] {a : α} (d : DerivableIn S a)
+    : S⇓a :=
   Classical.choice d
 
 noncomputable instance [InferenceSystem S α] {a : α} : Coe (DerivableIn S a) (S⇓a) :=
